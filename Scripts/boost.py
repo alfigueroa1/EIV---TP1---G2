@@ -1,4 +1,45 @@
-import numpy as np 
+import numpy as np
+
+def CCM_IL_on(Vd, L, D, Ts, Io, t):
+    Ix = Io/(1-D)
+    IL = (Vd/L)*(t-D*Ts/2) + Ix
+    return IL     
+    
+def CCM_IL_off(Vd, Vo, L, D, Ts, Io, t):
+    Ix = Io/(1-D)
+    IL = -((Vo-Vd)/L)*(t-(1+D)*Ts/2) + Ix
+    return IL
+
+def DCM_IL_on(Vd, L, D, Ts, t):
+    Delta_Il = (Vd/L)*D*Ts
+    IL = (Vd/L)*(t-D*Ts/2) + Delta_Il/2
+    return IL
+
+def DCM_IL_off(Vd, Vo, L, D, Ts, Io, t):
+    Delta_1 = 2*L*Io / (Vd*D*Ts)
+    Delta_Il = (Vd/L)*D*Ts
+    if (t/Ts) % 1 < (D + Delta_1):
+        IL = -((Vo-Vd)/L)*(t-D*Ts) + Delta_Il
+    else:
+        IL = 0
+    return IL
+
+def get_IL(Vd, Vo, L, Ts, Io, t):
+    D = 1 - Vd/Vo
+    Iob = Vo*Ts*((1-D)**2)*D / (2*L)
+    if Io >= Iob:       # If CCM
+        if (t/Ts) % 1 < D:
+            IL = CCM_IL_on(Vd, L, D, Ts, Io, (t%Ts))
+        else:
+            IL = CCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts))
+    else:
+        D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
+        if (t/Ts) % 1 < D:
+            IL = DCM_IL_on(Vd, L, D, Ts, (t%Ts))
+        else:
+            IL = DCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts))
+    return IL
+            
 
 def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
     """Calculate the capacitor for a continuous conduction mode boost converter
