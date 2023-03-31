@@ -1,6 +1,6 @@
 import numpy as np 
 
-def CCM_get_C(Vd, Vo, D, Ts, L, Io, Delta_Vo):
+def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
     """Calculate the capacitor for a continuous conduction mode boost converter
 
     Args:
@@ -19,16 +19,16 @@ def CCM_get_C(Vd, Vo, D, Ts, L, Io, Delta_Vo):
     Delta_IL = (Vd/L)*D*Ts
     if Ix - Delta_IL/2 - Io >= 0:
         print("Capacitor caso rectángulo")
-        C = Io*D*Ts/Delta_Vo
+        Delta_Q = Io*D*Ts
     else:
         print("Capacitor caso triángulo")
         h = Ix + Delta_IL/2 - Io
         m = -(Vo-Vd)/L
         Delta_Q = -h**2/(2*m)
-        C = Delta_Q/Delta_Vo
-    return C
+        
+    return Delta_Q
 
-def DCM_get_C(Vd, Vo, D, Ts, L, Io, Delta_Vo):
+def DCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
     """Calculate the capacitor for a diccontinuous conduction mode boost converter
 
     Args:
@@ -49,5 +49,9 @@ def DCM_get_C(Vd, Vo, D, Ts, L, Io, Delta_Vo):
     h = Delta_IL - Io
     m = -(Vo-Vd)/L
     Delta_Q = -h**2/(2*m)
-    C = Delta_Q/Delta_Vo
-    return C
+    
+    return Delta_Q
+
+def CCM_Pd(Vd, fsw, Io, t_ri, t_fv, t_rv, t_fi):
+    Pd = 0.5*Vd*Io*(t_ri + t_fv + t_rv + t_fi)*fsw
+    return Pd
