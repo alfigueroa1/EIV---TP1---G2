@@ -18,13 +18,26 @@ def DCM_IL_on(Vd, L, D, Ts, t):
 def DCM_IL_off(Vd, Vo, L, D, Ts, Io, t):
     Delta_1 = 2*L*Io / (Vd*D*Ts)
     Delta_Il = (Vd/L)*D*Ts
-    if (t/Ts) % 1 < (D + Delta_1):
+    if (t/Ts) % 1 < D + Delta_1:
         IL = -((Vo-Vd)/L)*(t-D*Ts) + Delta_Il
     else:
         IL = 0
     return IL
 
 def get_IL(Vd, Vo, L, Ts, Io, t):
+    """Obtain the value of the inductor current in a Boost converter in an instant t
+
+    Args:
+        Vd (float)
+        Vo (float)
+        L (float)
+        Ts (float)
+        Io (float)
+        t (float): time passed since the Boost converter was turned on
+
+    Returns:
+        float: IL
+    """
     D = 1 - Vd/Vo
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
@@ -40,8 +53,27 @@ def get_IL(Vd, Vo, L, Ts, Io, t):
             IL = DCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts))
     return IL
             
+def get_VL(Vd, Vo, L, Ts, Io, t):
+    D = 1 - Vd/Vo
+    Iob = Vo*Ts*((1-D)**2)*D / (2*L)
+    if Io >= Iob:       # If CCM
+        if (t/Ts) % 1 < D:
+            VL = Vd
+        else:
+            VL = -(Vo - Vd)
+    else:
+        D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
+        Delta_1 = 2*L*Io / (Vd*D*Ts)
+        if (t/Ts) % 1 < D:
+            VL = Vd
+        elif (t/Ts) % 1 < D + Delta_1:
+            VL = -(Vo - Vd)
+        else:
+            VL = 0
+    return VL
 
-def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
+
+def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io):
     """Calculate the capacitor for a continuous conduction mode boost converter
 
     Args:
@@ -69,7 +101,7 @@ def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
         
     return Delta_Q
 
-def DCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
+def DCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io):
     """Calculate the capacitor for a diccontinuous conduction mode boost converter
 
     Args:
@@ -84,7 +116,6 @@ def DCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io, Delta_Vo):
     Returns:
         float: C
     """
-
     Delta_IL = (Vd/L)*D*Ts
     # En DCM, siempre vamos a estar en el caso triángulo
     h = Delta_IL - Io
