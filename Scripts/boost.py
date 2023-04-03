@@ -226,31 +226,32 @@ def get_VC(Vd, Vo, L, C, Ts, Io, t):
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
         if (t/Ts) % 1 < D:
-            VC = CCM_VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts)
+            VC = VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts - D*Ts/2)
         else:
             VC = CCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t%Ts)
     else:
         D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
         Delta_1 = 2*L*Io / (Vd*D*Ts)
         if (t/Ts) % 1 < D:
-            VC = Vo
+            VC = VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts)
         elif (t/Ts) % 1 < D + Delta_1:
-            VC = Vo
+            VC = DCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t%Ts)
         else:
-            VC = Vo
-    return VC
-
-def CCM_VC_on(Vo, Vd, L, C, D, Ts, Io, t):
-    Ix = Io/(1-D)
-    VC = -(Io/C)*(t - D*Ts/2)
-    # VC = -(Io/C)*(t - D*Ts/2) + (Vo-Vd)*D*Ts**2/(L*C*2) + (Ix -Io + Io/C)*D*Ts
+            VC = VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts - Ts)
     return VC
 
 def CCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t):
-    Ix = Io/(1-D)
     VC = -((1/C)*((t-D*Ts)*((D-1)*(Vo-Vd)*t - (D-1)*Ts*Vo + (D-1)*Ts*Vd + 2*D*Io*L))/(2*(D-1)*L) + (Io/C)*(D/2)*Ts)
-    # VC = -(Vo-Vd)*(t-(1+D)*Ts)*(t/2)/(L*C) + (Ix - Io)*t
-    # VC = (Ix*t-((Vo-Vd)*(t**2/2-((D+1)*Ts*t)/2))/L)/C  -3#+ Vo - 0.07023252272727276
+    return VC
+
+def VC_on(Vo, Vd, L, C, D, Ts, Io, t):
+    VC = -(Io/C)*t
+    return VC
+
+def DCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t):
+    Delta_1 = 2*L*Io / (Vd*D*Ts)
+    Delta_Il = (Vd/L)*D*Ts
+    VC = (-((Vo-Vd)/L)*(t**2/2-D*Ts*t) + (Delta_Il -Io)*t)/C + (-Io*D*Ts-((Vo-Vd)/L)*(((D*Ts)**2)/2) - (Delta_Il -Io)*D*Ts)/C 
     return VC
 
 def get_IC(Vd, Vo, L, Ts, Io, t):
