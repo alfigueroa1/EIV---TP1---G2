@@ -249,9 +249,8 @@ def VC_on(Vo, Vd, L, C, D, Ts, Io, t):
     return VC
 
 def DCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t):
-    Delta_1 = 2*L*Io / (Vd*D*Ts)
     Delta_Il = (Vd/L)*D*Ts
-    VC = (-((Vo-Vd)/L)*(t**2/2-D*Ts*t) + (Delta_Il -Io)*t)/C + (-Io*D*Ts-((Vo-Vd)/L)*(((D*Ts)**2)/2) - (Delta_Il -Io)*D*Ts)/C 
+    VC = (-((Vo-Vd)/L)*(t**2/2-D*Ts*t) + (Delta_Il -Io)*t)/C + (-Io*D*Ts-((Vo-Vd)/L)*(((D*Ts)**2)/2) - (Delta_Il - Io)*D*Ts)/C 
     return VC
 
 def get_IC(Vd, Vo, L, Ts, Io, t):
@@ -282,6 +281,24 @@ def get_IC(Vd, Vo, L, Ts, Io, t):
         else:
             IC = DCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts)) - Io
     return IC
+
+def get_VO(Vd, Vo, L, C, ESR, Ts, Io, t):
+    """Obtain the value of the output voltage in a Boost converter in an instant t.
+    MEAN VALUE MUST BE ADJUSTED
+
+    Args:
+        Vd (float)
+        Vo (float)
+        L (float)
+        Ts (float)
+        Io (float)
+        t (float): time passed since the Boost converter was turned on
+
+    Returns:
+        float: VO
+    """
+    VO = get_VC(Vd, Vo, L, C, Ts, Io, t) - ESR*get_IC(Vd, Vo, L, Ts, Io, t)
+    return VO
 
 def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io):
     """Calculate the capacitor for a continuous conduction mode boost converter
