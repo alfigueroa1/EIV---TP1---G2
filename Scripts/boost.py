@@ -18,7 +18,7 @@ def DCM_IL_on(Vd, L, D, Ts, t):
 def DCM_IL_off(Vd, Vo, L, D, Ts, Io, t):
     Delta_1 = 2*L*Io / (Vd*D*Ts)
     Delta_Il = (Vd/L)*D*Ts
-    if (t/Ts) % 1 < D + Delta_1:
+    if (t/Ts) % 1 <= D + Delta_1:
         IL = -((Vo-Vd)/L)*(t-D*Ts) + Delta_Il
     else:
         IL = 0
@@ -41,14 +41,14 @@ def get_VL(Vd, Vo, L, Ts, Io, t):
     D = 1 - Vd/Vo
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             VL = Vd
         else:
             VL = -(Vo - Vd)
     else:
         D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
         Delta_1 = 2*L*Io / (Vd*D*Ts)
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             VL = Vd
         elif (t/Ts) % 1 < D + Delta_1:
             VL = -(Vo - Vd)
@@ -73,13 +73,13 @@ def get_IL(Vd, Vo, L, Ts, Io, t):
     D = 1 - Vd/Vo
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             IL = CCM_IL_on(Vd, L, D, Ts, Io, (t%Ts))
         else:
             IL = CCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts))
     else:
         D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             IL = DCM_IL_on(Vd, L, D, Ts, (t%Ts))
         else:
             IL = DCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts))
@@ -102,16 +102,16 @@ def get_Vsw(Vd, Vo, L, Ts, Io, t):
     D = 1 - Vd/Vo
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             Vsw = 0
         else:
             Vsw = Vo
     else:
         D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
         Delta_1 = 2*L*Io / (Vd*D*Ts)
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             Vsw = 0
-        elif (t/Ts) % 1 < D + Delta_1:
+        elif (t/Ts) % 1 <= D + Delta_1:
             Vsw = Vo
         else:
             Vsw = Vd
@@ -225,16 +225,16 @@ def get_VC(Vd, Vo, L, C, Ts, Io, t):
     D = 1 - Vd/Vo
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             VC = VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts - D*Ts/2)
         else:
             VC = CCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t%Ts)
     else:
         D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
         Delta_1 = 2*L*Io / (Vd*D*Ts)
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             VC = VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts)
-        elif (t/Ts) % 1 < D + Delta_1:
+        elif (t/Ts) % 1 <= D + Delta_1:
             VC = DCM_VC_off(Vo, Vd, L, C, D, Ts, Io, t%Ts)
         else:
             VC = VC_on(Vo, Vd, L, C, D, Ts, Io, t%Ts - Ts)
@@ -270,13 +270,13 @@ def get_IC(Vd, Vo, L, Ts, Io, t):
     D = 1 - Vd/Vo
     Iob = Vo*Ts*((1-D)**2)*D / (2*L)
     if Io >= Iob:       # If CCM
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             IC = -Io
         else:
             IC = CCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts)) - Io
     else:
         D = np.sqrt(( 2*L*Io / (Vd*Ts)) * (Vo/Vd - 1))
-        if (t/Ts) % 1 < D:
+        if (t/Ts) % 1 <= D:
             IC = -Io
         else:
             IC = DCM_IL_off(Vd, Vo, L, D, Ts, Io, (t%Ts)) - Io
@@ -297,7 +297,7 @@ def get_VO(Vd, Vo, L, C, ESR, Ts, Io, t):
     Returns:
         float: VO
     """
-    VO = get_VC(Vd, Vo, L, C, Ts, Io, t) - ESR*get_IC(Vd, Vo, L, Ts, Io, t)
+    VO = get_VC(Vd, Vo, L, C, Ts, Io, t) + ESR*get_IC(Vd, Vo, L, Ts, Io, t)
     return VO
 
 def CCM_get_Delta_Q(Vd, Vo, D, Ts, L, Io):
