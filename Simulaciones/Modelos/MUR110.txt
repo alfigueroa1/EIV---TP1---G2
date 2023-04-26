@@ -1,0 +1,1 @@
+.model MUR110 D(Is=9.82502e-09 Rs=0.0304421 N=1.57715 Cjo=5.37397e-11 M=0.515449 tt=1.63843e-08 Xti=0.5 bv=100 Ibv=0.000002 EG=0.849639 Vj=1.24876 Fc=0.5 KF=0 AF=1 mfg=OnSemi type=Rectifier)
